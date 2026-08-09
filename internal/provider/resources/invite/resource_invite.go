@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -33,7 +33,7 @@ type InviteResourceModel struct {
 	ID         types.String `tfsdk:"id"`
 	Email      types.String `tfsdk:"email"`
 	Role       types.String `tfsdk:"role"`
-	Projects   types.List   `tfsdk:"projects"`
+	Projects   types.Set    `tfsdk:"projects"`
 	Status     types.String `tfsdk:"status"`
 	CreatedAt  types.Int64  `tfsdk:"created_at"`
 	ExpiresAt  types.Int64  `tfsdk:"expires_at"`
@@ -106,14 +106,14 @@ func (r *InviteResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"projects": schema.ListNestedAttribute{
+			"projects": schema.SetNestedAttribute{
 				MarkdownDescription: "Projects to which membership is granted when the invite is accepted. If omitted, no project membership is granted.",
 				Required:            false,
 				Optional:            true,
 				Computed:            true,
 				Sensitive:           false,
-				PlanModifiers: []planmodifier.List{
-					listplanmodifier.RequiresReplace(),
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.RequiresReplace(),
 				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -245,7 +245,7 @@ func (r *InviteResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 	if projectsResultItems == nil {
 		if data.Projects.IsUnknown() {
-			data.Projects = types.ListNull(types.ObjectType{AttrTypes: map[string]attr.Type{
+			data.Projects = types.SetNull(types.ObjectType{AttrTypes: map[string]attr.Type{
 				"id":   types.StringType,
 				"role": types.StringType,
 			}})
@@ -264,7 +264,7 @@ func (r *InviteResource) Create(ctx context.Context, req resource.CreateRequest,
 			}
 			projectsItems = append(projectsItems, project)
 		}
-		projectsItemsValue, projectsDiags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+		projectsItemsValue, projectsDiags := types.SetValueFrom(ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
 			"id":   types.StringType,
 			"role": types.StringType,
 		}}, projectsItems)
@@ -339,7 +339,7 @@ func (r *InviteResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 	if projectsResultItems == nil {
 		if data.Projects.IsUnknown() {
-			data.Projects = types.ListNull(types.ObjectType{AttrTypes: map[string]attr.Type{
+			data.Projects = types.SetNull(types.ObjectType{AttrTypes: map[string]attr.Type{
 				"id":   types.StringType,
 				"role": types.StringType,
 			}})
@@ -358,7 +358,7 @@ func (r *InviteResource) Read(ctx context.Context, req resource.ReadRequest, res
 			}
 			projectsItems = append(projectsItems, project)
 		}
-		projectsItemsValue, projectsDiags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
+		projectsItemsValue, projectsDiags := types.SetValueFrom(ctx, types.ObjectType{AttrTypes: map[string]attr.Type{
 			"id":   types.StringType,
 			"role": types.StringType,
 		}}, projectsItems)
