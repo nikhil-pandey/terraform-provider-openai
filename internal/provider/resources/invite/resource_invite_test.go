@@ -20,23 +20,23 @@ func TestInviteOmittedProjectsPlanRemovesPreviousGrants(t *testing.T) {
 		t.Fatal(err)
 	}
 	typ := schemas.ResourceSchemas["openai_invite"].ValueType().(tftypes.Object)
-	listType := typ.AttributeTypes["projects"].(tftypes.List)
-	projectType := listType.ElementType.(tftypes.Object)
-	grants := tftypes.NewValue(listType, []tftypes.Value{tftypes.NewValue(projectType, map[string]tftypes.Value{
+	setType := typ.AttributeTypes["projects"].(tftypes.Set)
+	projectType := setType.ElementType.(tftypes.Object)
+	grants := tftypes.NewValue(setType, []tftypes.Value{tftypes.NewValue(projectType, map[string]tftypes.Value{
 		"id":   tftypes.NewValue(tftypes.String, "proj_test"),
 		"role": tftypes.NewValue(tftypes.String, "owner"),
 	})})
-	empty := tftypes.NewValue(listType, []tftypes.Value{})
+	empty := tftypes.NewValue(setType, []tftypes.Value{})
 	for _, scenario := range []struct {
 		name                    string
 		config, prior, expected tftypes.Value
 		replace                 bool
 	}{
-		{"omitted", tftypes.NewValue(listType, nil), grants, empty, true},
+		{"omitted", tftypes.NewValue(setType, nil), grants, empty, true},
 		{"empty", empty, grants, empty, true},
 		{"unchanged", grants, grants, grants, false},
-		{"already_empty", tftypes.NewValue(listType, nil), empty, empty, false},
-		{"unknown", tftypes.NewValue(listType, tftypes.UnknownValue), grants, tftypes.NewValue(listType, tftypes.UnknownValue), true},
+		{"already_empty", tftypes.NewValue(setType, nil), empty, empty, false},
+		{"unknown", tftypes.NewValue(setType, tftypes.UnknownValue), grants, tftypes.NewValue(setType, tftypes.UnknownValue), true},
 	} {
 		t.Run(scenario.name, func(t *testing.T) {
 			values := func(projects tftypes.Value, state bool) *tfprotov6.DynamicValue {

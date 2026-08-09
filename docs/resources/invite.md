@@ -33,7 +33,7 @@ resource "openai_invite" "example" {
 
 ### Optional
 
-- `projects` (Attributes List) Projects to which membership is granted when the invite is accepted. If omitted, no project membership is granted. (see [below for nested schema](#nestedatt--projects))
+- `projects` (Attributes Set) Projects to which membership is granted when the invite is accepted. If omitted, no project membership is granted. (see [below for nested schema](#nestedatt--projects))
 
 ### Read-Only
 
